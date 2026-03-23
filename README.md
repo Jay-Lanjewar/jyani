@@ -2,7 +2,7 @@
  
 Answer 8 psychology-backed questions and get genre, artist, and song recommendations powered by AI — tailored to exactly how you feel right now.
  
-**[▶ Try it live →](https://your-app-link.streamlit.app)**
+**[▶ Try it live →](https://surjap-jay-lanjewar.streamlit.app/)**
  
 ---
  
