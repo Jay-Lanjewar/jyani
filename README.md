@@ -1,4 +1,4 @@
-# 🎵 Surjap — Music for Your Moment
+# 🎵 Jyani — Music for Your Moment
  
 Answer 8 psychology-backed questions and get genre, artist, and song recommendations powered by AI — tailored to exactly how you feel right now.
  
@@ -8,15 +8,15 @@ Answer 8 psychology-backed questions and get genre, artist, and song recommendat
  
 ## How it works
  
-Surjap scores your answers across 3 psychological axes — **Energy**, **Valence** (emotional tone), and **Social** (how connected or isolated you want to feel). These scores are sent to an LLM which returns a fresh mood name, description, genres, and 6 real song recommendations — every run is unique.
+Jyani scores your answers across 3 psychological axes — **Energy**, **Valence** (emotional tone), and **Social** (how connected or isolated you want to feel). These scores are sent to an LLM which returns a fresh mood name, description, genres, and 6 real song recommendations — every run is unique.
  
 This mirrors how platforms like Spotify internally classify music mood.
  
 ## Run locally
  
 ```bash
-git clone https://github.com/Jay-Lanjewar/surjap
-cd surjap
+git clone https://github.com/Jay-Lanjewar/jyani
+cd jyani
 pip install -r requirements.txt
 ```
  

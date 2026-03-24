@@ -8,7 +8,7 @@ from mood_engine import questions, calculate_scores, build_answer_summary
 load_dotenv()
  
 st.set_page_config(
-    page_title="Surjap — Music for Your Moment",
+    page_title="Jyani — Music for Your Moment",
     page_icon="🎵",
     layout="centered",
 )
@@ -139,7 +139,7 @@ def reset():
  
 init_state()
  
-st.markdown('<p class="main-title">Surjap 🎵</p>', unsafe_allow_html=True)
+st.markdown('<p class="main-title">Jyani 🎵</p>', unsafe_allow_html=True)
 st.markdown('<p class="subtitle">Answer 8 questions. Get music that fits your moment.</p>', unsafe_allow_html=True)
  
 total = len(questions)
