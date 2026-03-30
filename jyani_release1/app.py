@@ -56,7 +56,7 @@ def get_gemini_key():
         return os.getenv("GEMINI_API_KEY", "")
  
  
-def get_recommendation(energy, valence, social, answer_summary, user_pref):
+def get_recommendation(energy, valence, social, answer_summary):
     api_key = get_gemini_key()
     if not api_key:
         return None, "No API key found. Add GEMINI_API_KEY to your .env file."
@@ -64,7 +64,7 @@ def get_recommendation(energy, valence, social, answer_summary, user_pref):
     try:
         client = genai.Client(api_key=api_key)
  
-        prompt = f"""You are a music psychologist and expert recommender specializing in Indian music. A user answered 9 mood questions.
+        prompt = f"""You are a music psychologist and expert recommender specializing in Indian music. A user answered 8 mood questions.
  
 Their answers:
 {answer_summary}
@@ -73,7 +73,6 @@ Mood scores (scale roughly -16 to +16):
 - Energy: {energy} (negative = low energy, positive = high energy)
 - Valence: {valence} (negative = sad/tense, positive = happy/content)
 - Social: {social} (negative = wants to be alone, positive = wants connection)
-- User preference: {user_pref}
  
 Return ONLY a valid JSON object with no extra text, no markdown, no backticks:
  
@@ -95,10 +94,7 @@ Return ONLY a valid JSON object with no extra text, no markdown, no backticks:
  
 Rules:
 - ALL songs must be Indian — Bollywood, Hindi indie, Punjabi pop, or regional Indian music only. No western/international songs.
-- Prefer songs the user is likely to recognize emotionally, not just technically match mood.
-- If preference = "familiar": choose highly popular, widely recognized Indian songs.
-- If preference = "mixed": mix popular + moderately known songs.
-- If preference = "new": include lesser-known but high-quality songs.
+- Pick songs that are popular and well known in India, that a typical Indian teenager or young adult would recognise and love.
 - Examples of good artists: Arijit Singh, Pritam, AP Dhillon, Diljit Dosanjh, Nucleya, When Chai Met Toast, The Local Train, Prateek Kuhad, Ritviz, Anuv Jain, Darshan Raval, B Praak, Jubin Nautiyal, Shreya Ghoshal, Tanishka bahl.
 - Match the mood axes precisely — don't recommend upbeat songs for low valence scores.
 - Songs must actually exist on YouTube.
@@ -132,12 +128,6 @@ def init_state():
         st.session_state.result = None
     if "error" not in st.session_state:
         st.session_state.error = None
-    if "scores" not in st.session_state:
-        st.session_state.scores = None
-    if "user_pref" not in st.session_state:
-        st.session_state.user_pref = None
-    if "feedback" not in st.session_state:
-        st.session_state.feedback = None
  
  
 def reset():
@@ -145,29 +135,12 @@ def reset():
     st.session_state.answers = {}
     st.session_state.result = None
     st.session_state.error = None
-    st.session_state.scores = None
-    st.session_state.user_pref = None
-    st.session_state.feedback = None
-
-
-def fetch_recommendation():
-    energy, valence, social = calculate_scores(st.session_state.answers)
-    summary = build_answer_summary(st.session_state.answers)
-    user_pref = st.session_state.user_pref or "mixed"
-    data, err = get_recommendation(energy, valence, social, summary, user_pref)
-    st.session_state.scores = (energy, valence, social)
-    st.session_state.error = err
-    if err:
-        st.session_state.result = None
-    else:
-        st.session_state.result = data
-        st.session_state.feedback = None
  
  
 init_state()
  
 st.markdown('<p class="main-title">Jyani 🎵</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">Answer 9 questions. Get music that fits your moment.</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">Answer 8 questions. Get music that fits your moment.</p>', unsafe_allow_html=True)
  
 total = len(questions)
  
@@ -181,7 +154,7 @@ if st.session_state.result is None and st.session_state.error is None:
         st.markdown(f'<p class="question-text">{q["text"]}</p>', unsafe_allow_html=True)
  
         option_labels = [opt["label"] for opt in q["options"]]
-        choice = st.radio("Choose one option", option_labels, key=f"radio_{q['id']}", label_visibility="collapsed")
+        choice = st.radio("", option_labels, key=f"radio_{q['id']}", label_visibility="collapsed")
  
         col1, col2 = st.columns([3, 1])
         with col1:
@@ -189,14 +162,18 @@ if st.session_state.result is None and st.session_state.error is None:
             if st.button(btn_label):
                 selected_index = option_labels.index(choice)
                 st.session_state.answers[q["id"]] = selected_index
-                selected_option = q["options"][selected_index]
-                if q["id"] == "q9":
-                    st.session_state.user_pref = selected_option.get("pref")
                 if step < total - 1:
                     st.session_state.step += 1
                 else:
                     with st.spinner("Reading your mood..."):
-                        fetch_recommendation()
+                        energy, valence, social = calculate_scores(st.session_state.answers)
+                        summary = build_answer_summary(st.session_state.answers)
+                        data, err = get_recommendation(energy, valence, social, summary)
+                        if err:
+                            st.session_state.error = err
+                        else:
+                            st.session_state.result = data
+                            st.session_state.scores = (energy, valence, social)
                 st.rerun()
         with col2:
             if step > 0:
@@ -204,8 +181,6 @@ if st.session_state.result is None and st.session_state.error is None:
                     st.session_state.step -= 1
                     if questions[step]["id"] in st.session_state.answers:
                         del st.session_state.answers[questions[step]["id"]]
-                    if questions[step]["id"] == "q9":
-                        st.session_state.user_pref = None
                     st.rerun()
  
 elif st.session_state.error:
@@ -259,30 +234,8 @@ else:
         st.write(f"**Energy** {'▓' * int(e_bar * 10)}{'░' * (10 - int(e_bar * 10))} ({energy:+d})")
         st.write(f"**Valence** {'▓' * int(v_bar * 10)}{'░' * (10 - int(v_bar * 10))} ({valence:+d})")
         st.write(f"**Social** {'▓' * int(s_bar * 10)}{'░' * (10 - int(s_bar * 10))} ({social:+d})")
-
-    feedback_col1, feedback_col2, feedback_col3 = st.columns(3)
-    with feedback_col1:
-        if st.button("👍 Matched my vibe"):
-            st.session_state.feedback = "Glad it matched!"
-            st.rerun()
-    with feedback_col2:
-        if st.button("😐 Kinda okay"):
-            st.session_state.feedback = "Got it, we can improve this."
-            st.rerun()
-    with feedback_col3:
-        if st.button("👎 Not really"):
-            st.session_state.feedback = "Let’s refine it."
-            st.rerun()
-
-    if st.session_state.feedback:
-        st.caption(st.session_state.feedback)
  
     st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("🔁 Try Different Songs"):
-        with st.spinner("Finding a different set for the same mood..."):
-            fetch_recommendation()
-        st.rerun()
-
     if st.button("🔄 Try Again"):
         reset()
         st.rerun()

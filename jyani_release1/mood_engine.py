@@ -87,15 +87,6 @@ questions = [
             {"label": "Electric yellow or red", "energy": 2, "valence": 1, "social": 1},
         ],
     },
-    {
-        "id": "q9",
-        "text": "What kind of songs do you prefer?",
-        "options": [
-            {"label": "Songs I already know and love", "pref": "familiar"},
-            {"label": "Mix of known and new", "pref": "mixed"},
-            {"label": "Discover new songs", "pref": "new"},
-        ],
-    },
 ]
 
 
@@ -104,9 +95,9 @@ def calculate_scores(answers: dict) -> tuple:
     for q_id, option_index in answers.items():
         q = next(q for q in questions if q["id"] == q_id)
         option = q["options"][option_index]
-        energy += option.get("energy", 0)
-        valence += option.get("valence", 0)
-        social += option.get("social", 0)
+        energy += option["energy"]
+        valence += option["valence"]
+        social += option["social"]
     return energy, valence, social
 
 
