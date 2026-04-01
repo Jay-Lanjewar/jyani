@@ -96,6 +96,26 @@ questions = [
             {"label": "Discover new songs", "pref": "new"},
         ],
     },
+    {
+        "id": "q10",
+        "text": "What kind of music era do you lean towards?",
+        "options": [
+            {"label": "Old classics (60s–90s)", "era": "old"},
+            {"label": "2000s–2010s", "era": "mid"},
+            {"label": "Modern songs", "era": "modern"},
+            {"label": "Depends on mood", "era": "dynamic"},
+        ],
+    },
+    {
+        "id": "q11",
+        "text": "Which languages do you prefer?",
+        "options": [
+            {"label": "Hindi", "lang": "hindi"},
+            {"label": "Marathi", "lang": "marathi"},
+            {"label": "English", "lang": "english"},
+            {"label": "Mix of all", "lang": "mixed"},
+        ],
+    },
 ]
 
 

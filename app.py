@@ -56,7 +56,7 @@ def get_gemini_key():
         return os.getenv("GEMINI_API_KEY", "")
  
  
-def get_recommendation(energy, valence, social, answer_summary, user_pref):
+def get_recommendation(energy, valence, social, answer_summary, user_pref, era_pref, lang_pref):
     api_key = get_gemini_key()
     if not api_key:
         return None, "No API key found. Add GEMINI_API_KEY to your .env file."
@@ -64,7 +64,7 @@ def get_recommendation(energy, valence, social, answer_summary, user_pref):
     try:
         client = genai.Client(api_key=api_key)
  
-        prompt = f"""You are a music psychologist and expert recommender specializing in Indian music. A user answered 9 mood questions.
+        prompt = f"""You are a music psychologist and expert recommender specializing in Indian music. A user answered 11 mood questions.
  
 Their answers:
 {answer_summary}
@@ -73,7 +73,11 @@ Mood scores (scale roughly -16 to +16):
 - Energy: {energy} (negative = low energy, positive = high energy)
 - Valence: {valence} (negative = sad/tense, positive = happy/content)
 - Social: {social} (negative = wants to be alone, positive = wants connection)
-- User preference: {user_pref}
+
+User Preferences:
+- Familiarity: {user_pref}
+- Era: {era_pref}
+- Language: {lang_pref}
  
 Return ONLY a valid JSON object with no extra text, no markdown, no backticks:
  
@@ -94,15 +98,28 @@ Return ONLY a valid JSON object with no extra text, no markdown, no backticks:
 }}
  
 Rules:
-- ALL songs must be Indian — Bollywood, Hindi indie, Punjabi pop, or regional Indian music only. No western/international songs.
-- Prefer songs the user is likely to recognize emotionally, not just technically match mood.
-- If preference = "familiar": choose highly popular, widely recognized Indian songs.
-- If preference = "mixed": mix popular + moderately known songs.
-- If preference = "new": include lesser-known but high-quality songs.
+- Default toward Indian music, but if language = "english", English songs are allowed when they genuinely fit the mood and preference profile.
+- User taste changes depending on mood. Do not rigidly stick to one era or style. Adapt dynamically.
+- Prefer emotionally relatable songs.
+- Prefer songs users are likely to recognize.
+- Avoid overly niche or unknown songs unless preference = "new".
+- Avoid loud party songs unless energy is high.
+- If familiarity = "familiar": choose highly popular, widely recognized songs.
+- If familiarity = "mixed": mix popular + moderately known songs.
+- If familiarity = "new": include lesser-known but high-quality songs.
+- If era = "old": lean towards classic Bollywood, especially 60s–80s songs.
+- If era = "mid": lean towards 2000s–2010s songs.
+- If era = "modern": lean towards modern songs.
+- If era = "dynamic": choose era based on mood. Low energy should lean toward old soft melodic songs, while high energy can lean more modern or upbeat.
+- If language = "hindi": prioritize Hindi songs.
+- If language = "marathi": include Marathi songs such as bhavgeet, soft Marathi, or Marathi film songs where they fit the mood.
+- If language = "english": include English songs matching the mood.
+- If language = "mixed": blend languages naturally.
+- Keep recommendations dynamic and mood-driven even when applying familiarity, era, and language preferences.
 - Examples of good artists: Arijit Singh, Pritam, AP Dhillon, Diljit Dosanjh, Nucleya, When Chai Met Toast, The Local Train, Prateek Kuhad, Ritviz, Anuv Jain, Darshan Raval, B Praak, Jubin Nautiyal, Shreya Ghoshal, Tanishka bahl.
 - Match the mood axes precisely — don't recommend upbeat songs for low valence scores.
 - Songs must actually exist on YouTube.
-- Genres should also be Indian — e.g. Bollywood, Hindi Indie, Punjabi Pop, Sufi, Lo-fi Hindi, etc.
+- Genres should reflect the actual recommendation mix — e.g. Bollywood, Hindi Indie, Marathi Bhavgeet, Soft Rock, English Pop, Sufi, Lo-fi Hindi, etc.
 - Be specific, not generic.
 """
  
@@ -136,6 +153,10 @@ def init_state():
         st.session_state.scores = None
     if "user_pref" not in st.session_state:
         st.session_state.user_pref = None
+    if "era_pref" not in st.session_state:
+        st.session_state.era_pref = None
+    if "lang_pref" not in st.session_state:
+        st.session_state.lang_pref = None
     if "feedback" not in st.session_state:
         st.session_state.feedback = None
  
@@ -147,6 +168,8 @@ def reset():
     st.session_state.error = None
     st.session_state.scores = None
     st.session_state.user_pref = None
+    st.session_state.era_pref = None
+    st.session_state.lang_pref = None
     st.session_state.feedback = None
 
 
@@ -154,7 +177,9 @@ def fetch_recommendation():
     energy, valence, social = calculate_scores(st.session_state.answers)
     summary = build_answer_summary(st.session_state.answers)
     user_pref = st.session_state.user_pref or "mixed"
-    data, err = get_recommendation(energy, valence, social, summary, user_pref)
+    era_pref = st.session_state.era_pref or "dynamic"
+    lang_pref = st.session_state.lang_pref or "mixed"
+    data, err = get_recommendation(energy, valence, social, summary, user_pref, era_pref, lang_pref)
     st.session_state.scores = (energy, valence, social)
     st.session_state.error = err
     if err:
@@ -167,7 +192,7 @@ def fetch_recommendation():
 init_state()
  
 st.markdown('<p class="main-title">Jyani 🎵</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">Answer 9 questions. Get music that fits your moment.</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">Answer 11 questions. Get music that fits your moment.</p>', unsafe_allow_html=True)
  
 total = len(questions)
  
@@ -192,6 +217,10 @@ if st.session_state.result is None and st.session_state.error is None:
                 selected_option = q["options"][selected_index]
                 if q["id"] == "q9":
                     st.session_state.user_pref = selected_option.get("pref")
+                if q["id"] == "q10":
+                    st.session_state.era_pref = selected_option.get("era")
+                if q["id"] == "q11":
+                    st.session_state.lang_pref = selected_option.get("lang")
                 if step < total - 1:
                     st.session_state.step += 1
                 else:
@@ -206,6 +235,10 @@ if st.session_state.result is None and st.session_state.error is None:
                         del st.session_state.answers[questions[step]["id"]]
                     if questions[step]["id"] == "q9":
                         st.session_state.user_pref = None
+                    if questions[step]["id"] == "q10":
+                        st.session_state.era_pref = None
+                    if questions[step]["id"] == "q11":
+                        st.session_state.lang_pref = None
                     st.rerun()
  
 elif st.session_state.error:
