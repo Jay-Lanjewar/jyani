@@ -56,7 +56,16 @@ def get_gemini_key():
         return os.getenv("GEMINI_API_KEY", "")
  
  
-def get_recommendation(energy, valence, social, answer_summary, user_pref, era_pref, lang_pref):
+def get_recommendation(
+    energy,
+    valence,
+    social,
+    answer_summary,
+    user_pref,
+    era_pref,
+    lang_pref,
+    reference_songs,
+):
     api_key = get_gemini_key()
     if not api_key:
         return None, "No API key found. Add GEMINI_API_KEY to your .env file."
@@ -78,6 +87,9 @@ User Preferences:
 - Familiarity: {user_pref}
 - Era: {era_pref}
 - Language: {lang_pref}
+
+Reference Songs:
+{reference_songs}
  
 Return ONLY a valid JSON object with no extra text, no markdown, no backticks:
  
@@ -98,6 +110,9 @@ Return ONLY a valid JSON object with no extra text, no markdown, no backticks:
 }}
  
 Rules:
+- Use the reference songs to understand the user's taste. Recommend songs similar in style, melody, emotion, and era.
+- Treat reference songs as the highest-priority taste signal, then balance them with mood, familiarity, era, and language preferences.
+- If reference songs are classic Bollywood (Lata, Kishore, etc.), prefer similar artists, eras, and melodic structure.
 - Default toward Indian music, but if language = "english", English songs are allowed when they genuinely fit the mood and preference profile.
 - User taste changes depending on mood. Do not rigidly stick to one era or style. Adapt dynamically.
 - Prefer emotionally relatable songs.
@@ -157,6 +172,8 @@ def init_state():
         st.session_state.era_pref = None
     if "lang_pref" not in st.session_state:
         st.session_state.lang_pref = None
+    if "reference_songs" not in st.session_state:
+        st.session_state.reference_songs = ""
     if "feedback" not in st.session_state:
         st.session_state.feedback = None
  
@@ -170,6 +187,7 @@ def reset():
     st.session_state.user_pref = None
     st.session_state.era_pref = None
     st.session_state.lang_pref = None
+    st.session_state.reference_songs = ""
     st.session_state.feedback = None
 
 
@@ -179,7 +197,17 @@ def fetch_recommendation():
     user_pref = st.session_state.user_pref or "mixed"
     era_pref = st.session_state.era_pref or "dynamic"
     lang_pref = st.session_state.lang_pref or "mixed"
-    data, err = get_recommendation(energy, valence, social, summary, user_pref, era_pref, lang_pref)
+    reference_songs = (st.session_state.reference_songs or "").strip() or "None provided"
+    data, err = get_recommendation(
+        energy,
+        valence,
+        social,
+        summary,
+        user_pref,
+        era_pref,
+        lang_pref,
+        reference_songs,
+    )
     st.session_state.scores = (energy, valence, social)
     st.session_state.error = err
     if err:
@@ -207,6 +235,12 @@ if st.session_state.result is None and st.session_state.error is None:
  
         option_labels = [opt["label"] for opt in q["options"]]
         choice = st.radio("Choose one option", option_labels, key=f"radio_{q['id']}", label_visibility="collapsed")
+        if step == total - 1:
+            st.text_input(
+                "Enter 1-3 songs you like (optional)",
+                key="reference_songs",
+                placeholder="Example: Lag Jaa Gale, Iktara, Kasoor",
+            )
  
         col1, col2 = st.columns([3, 1])
         with col1:
