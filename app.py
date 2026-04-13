@@ -96,9 +96,10 @@ Return ONLY a valid JSON object with no extra text, no markdown, no backticks:
 {{
   "mood_name": "2-3 word evocative mood name",
   "emoji": "one fitting emoji",
-  "description": "2 sentences about their current emotional state, speak directly to them",
-  "vibe": "one short poetic line about the music vibe",
+  "description": "2 emotionally accurate, relatable sentences that feel personal and specific to the user’s mood. Avoid generic wording.",
+  "vibe": "a short relatable thought that feels like something the user might think in this mood",
   "genres": ["genre1", "genre2", "genre3"],
+  "reason": "1 short sentence explaining why this music fits their state",
   "songs": [
     {{"title": "Song Name", "artist": "Artist Name"}},
     {{"title": "Song Name", "artist": "Artist Name"}},
@@ -110,6 +111,8 @@ Return ONLY a valid JSON object with no extra text, no markdown, no backticks:
 }}
  
 Rules:
+- Add a "reason" field explaining why these songs match the user's mood.
+- The FIRST song must be highly recognizable, emotionally strong, and likely familiar to the user.
 - Use the reference songs to understand the user's taste. Recommend songs similar in style, melody, emotion, and era.
 - Treat reference songs as the highest-priority taste signal, then balance them with mood, familiarity, era, and language preferences.
 - If reference songs are classic Bollywood (Lata, Kishore, etc.), prefer similar artists, eras, and melodic structure.
