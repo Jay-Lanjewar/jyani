@@ -1,6 +1,5 @@
 import json
 import os
-import html
 import streamlit as st
 from google import genai
 from dotenv import load_dotenv
@@ -152,7 +151,7 @@ Rules:
                 model="gemini-1.5-flash",
                 contents=prompt,
             )
-
+			
         raw = response.text.strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1]
@@ -299,10 +298,10 @@ else:
     energy, valence, social = st.session_state.scores
 
     emoji = profile.get('emoji', '🎵')
-    mood_name = html.escape(profile.get('mood_name', 'Your Mood'))
-    desc = html.escape(profile.get('description', ''))
-    reason = html.escape(profile.get('reason', ''))
-    vibe = html.escape(profile.get('vibe', ''))
+	mood_name = profile.get('mood_name', 'Your Mood')
+	desc = profile.get('description', '')
+	reason = profile.get('reason', '')
+	vibe = profile.get('vibe', '')
 
     st.markdown(f"""
 <div class="mood-card">
