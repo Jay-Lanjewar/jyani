@@ -1,5 +1,6 @@
 import json
 import os
+import html
 import streamlit as st
 from google import genai
 from dotenv import load_dotenv
@@ -297,27 +298,26 @@ else:
     profile = st.session_state.result
     energy, valence, social = st.session_state.scores
 
+    emoji = profile.get('emoji', '🎵')
+    mood_name = html.escape(profile.get('mood_name', 'Your Mood'))
+    desc = html.escape(profile.get('description', ''))
+    reason = html.escape(profile.get('reason', ''))
+    vibe = html.escape(profile.get('vibe', ''))
+
     st.markdown(f"""
-    <div class="mood-card">
-    <div style="font-size: 3rem;">{profile.get('emoji','🎵')}</div>
-    <div class="mood-name">{profile.get('mood_name','Your Mood')}</div>
-
-    <p style="color: #aaa; margin-top: 0.5rem;">
-        {profile.get('description','')}
-    </p>
-
-    <p style="color: #888; font-size: 0.9rem; margin-top: 0.4rem;">
-    💡 {profile.get('reason','')}
-    </p>
-
-    <p class="vibe-text">"{profile.get('vibe','')}"</p>
+<div class="mood-card">
+    <div style="font-size: 3rem;">{emoji}</div>
+    <div class="mood-name">{mood_name}</div>
+    <p style="color: #aaa; margin-top: 0.5rem;">{desc}</p>
+    <p style="color: #888; font-size: 0.9rem; margin-top: 0.4rem;">💡 {reason}</p>
+    <p class="vibe-text">"{vibe}"</p>
 </div>
 """, unsafe_allow_html=True)
 
     genres = profile.get("genres", [])
     if genres:
         st.markdown("#### 🎧 Genres for you")
-        genres_html = " ".join([f'<span class="tag">{g}</span>' for g in genres])
+        genres_html = " ".join([f'<span class="tag">{html.escape(g)}</span>' for g in genres])
         st.markdown(genres_html, unsafe_allow_html=True)
 
     songs = profile.get("songs", [])
@@ -332,8 +332,8 @@ else:
                 f'<a href="{yt_url}" target="_blank" style="text-decoration:none;">'
                 f'<div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;'
                 f'padding:10px 16px;margin:5px 0;display:flex;justify-content:space-between;align-items:center;">'
-                f'<div><span style="color:#f0f0f0;font-weight:500;">{title}</span>'
-                f'<span style="color:#666;font-size:0.85rem;"> — {artist}</span></div>'
+                f'<div><span style="color:#f0f0f0;font-weight:500;">{html.escape(title)}</span>'
+                f'<span style="color:#666;font-size:0.85rem;"> — {html.escape(artist)}</span></div>'
                 f'<span style="color:#ff4444;font-size:1.1rem;">▶</span>'
                 f'</div></a>',
                 unsafe_allow_html=True,
