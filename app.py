@@ -155,10 +155,7 @@ Rules:
         return data, None
 
     except Exception as e:
-        if "503" in str(e):
-            return None, "Server is busy right now. Please try again in a bit."
-        else:
-            return None, f"Error: {str(e)}"
+        return None, f"FULL ERROR: {str(e)}"
 
 
 def init_state():
