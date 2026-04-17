@@ -298,7 +298,7 @@ else:
     energy, valence, social = st.session_state.scores
 
     emoji = profile.get('emoji', '🎵')
-	mood_name = profile.get('mood_name', 'Your Mood')
+    mood_name = profile.get('mood_name', 'Your Mood')
 	desc = profile.get('description', '')
 	reason = profile.get('reason', '')
 	vibe = profile.get('vibe', '')
