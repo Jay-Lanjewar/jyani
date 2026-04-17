@@ -68,32 +68,58 @@ def get_recommendation(
     reference_songs,
 ):
     api_key = get_gemini_key()
+
+    # ✅ single fallback (clean)
+    if valence < 0:
+        fallback_songs = [
+            {"title": "Lag Ja Gale", "artist": "Lata Mangeshkar"},
+            {"title": "Agar Tum Saath Ho", "artist": "Alka Yagnik"},
+            {"title": "Kasoor", "artist": "Prateek Kuhad"},
+        ]
+    else:
+        fallback_songs = [
+            {"title": "Ilahi", "artist": "Arijit Singh"},
+            {"title": "Safarnama", "artist": "Lucky Ali"},
+            {"title": "Phir Se Ud Chala", "artist": "Mohit Chauhan"},
+        ]
+
+    fallback = {
+        "mood_name": "Safe Mode",
+        "emoji": "🎧",
+        "description": "Something went wrong, but this should still feel close to your mood.",
+        "vibe": "Music still understands you.",
+        "reason": "Fallback based on your mood pattern",
+        "genres": ["Bollywood", "Soft"],
+        "songs": fallback_songs,
+    }
+
+    # ✅ if no API → still works
     if not api_key:
-        return None, "No API key found. Add GEMINI_API_KEY to your .env file."
- 
+        return fallback, None
+
     try:
         client = genai.Client(api_key=api_key)
- 
+
         prompt = f"""You are a music psychologist and expert recommender specializing in Indian music. A user answered 11 mood questions.
- 
+
 Their answers:
 {answer_summary}
- 
+
 Mood scores (scale roughly -16 to +16):
 - Energy: {energy} (negative = low energy, positive = high energy)
 - Valence: {valence} (negative = sad/tense, positive = happy/content)
 - Social: {social} (negative = wants to be alone, positive = wants connection)
- 
+
 User Preferences:
 - Familiarity: {user_pref}
 - Era: {era_pref}
 - Language: {lang_pref}
- 
+
 Reference Songs:
 {reference_songs}
- 
+
 Return ONLY a valid JSON object with no extra text, no markdown, no backticks:
- 
+
 {{
   "mood_name": "2-3 word evocative mood name",
   "emoji": "one fitting emoji",
@@ -110,7 +136,7 @@ Return ONLY a valid JSON object with no extra text, no markdown, no backticks:
     {{"title": "Song Name", "artist": "Artist Name"}}
   ]
 }}
- 
+
 Rules:
 - Add a "reason" field explaining why these songs match the user's mood.
 - The FIRST song must be highly recognizable, emotionally strong, and likely familiar to the user.
@@ -141,41 +167,26 @@ Rules:
 - Genres should reflect the actual recommendation mix — e.g. Bollywood, Hindi Indie, Marathi Bhavgeet, Soft Rock, English Pop, Sufi, Lo-fi Hindi, etc.
 - Be specific, not generic.
 """
- 
+
         response = client.models.generate_content(
-        model="gemini-flash-latest", # Redirects to the newest stable pool
-        contents=prompt,
+            model="gemini-2.5-flash",
+            contents=prompt,
         )
+
         raw = response.text.strip()
- 
+
         if raw.startswith("```"):
             raw = raw.split("```")[1]
             if raw.startswith("json"):
                 raw = raw[4:]
- 
+
         data = json.loads(raw.strip())
         return data, None
- 
-    except Exception as e:
-        error_text = str(e)
- 
-        fallback = {
-            "mood_name": "Safe Mode",
-            "emoji": "🎧",
-            "description": "Something went wrong, but here's a fallback vibe for you.",
-            "vibe": "Even silence has rhythm.",
-            "reason": "Fallback due to API issue",
-            "genres": ["Bollywood", "Soft"],
-            "songs": [
-                {"title": "Lag Ja Gale", "artist": "Lata Mangeshkar"},
-                {"title": "Iktara", "artist": "Kavita Seth"},
-                {"title": "Kasoor", "artist": "Prateek Kuhad"},
-            ],
-        }
- 
-        return fallback, f"DEBUG: {error_text}"
- 
- 
+
+    except Exception:
+        return fallback, None
+
+
 def init_state():
     if "step" not in st.session_state:
         st.session_state.step = 0
