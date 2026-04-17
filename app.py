@@ -143,7 +143,7 @@ Rules:
 """
  
         response = client.models.generate_content(
-        model="gemini-3.1-flash-lite", 
+        model="gemini-flash-latest", # Redirects to the newest stable pool
         contents=prompt,
         )
         raw = response.text.strip()
