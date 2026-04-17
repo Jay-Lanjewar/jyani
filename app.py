@@ -142,20 +142,40 @@ Rules:
 """
 
         response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt,
+            model="gemini-2.5-flash",
+            contents=prompt,
         )
-            
+
         raw = response.text.strip()
+
         if raw.startswith("```"):
             raw = raw.split("```")[1]
             if raw.startswith("json"):
                 raw = raw[4:]
+
         data = json.loads(raw.strip())
         return data, None
 
     except Exception as e:
-        return None, f"FULL ERROR: {str(e)}"
+        #  DEBUG MODE — SHOW REAL ERROR
+        error_text = str(e)
+
+        # If API fails → fallback result (IMPORTANT)
+        fallback = {
+            "mood_name": "Safe Mode",
+            "emoji": "🎧",
+            "description": "Something went wrong, but here’s a fallback vibe for you.",
+            "vibe": "Even silence has rhythm.",
+            "reason": "Fallback due to API issue",
+            "genres": ["Bollywood", "Soft"],
+            "songs": [
+                {"title": "Lag Ja Gale", "artist": "Lata Mangeshkar"},
+                {"title": "Iktara", "artist": "Kavita Seth"},
+                {"title": "Kasoor", "artist": "Prateek Kuhad"},
+            ],
+        }
+
+        return fallback, f"DEBUG: {error_text}"
 
 
 def init_state():
