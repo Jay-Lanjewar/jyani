@@ -297,10 +297,10 @@ else:
     profile = st.session_state.result
     energy, valence, social = st.session_state.scores
 
-    emoji = profile.get('emoji', '🎵')
-    mood_name = profile.get('mood_name', 'Your Mood')
+	emoji = profile.get('emoji', '🎵')
+	mood_name = profile.get('mood_name', 'Your Mood')
 	desc = profile.get('description', '')
-	reason = profile.get('reason', '')
+	reason = profile.get('reason','')
 	vibe = profile.get('vibe', '')
 
     st.markdown(f"""
