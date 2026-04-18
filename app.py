@@ -10,16 +10,7 @@ import re
 def clean_text(text):
     if not text:
         return ""
-    text = re.sub(r"<[^>]+>", "", text)  # remove all HTML tags
-    return text.strip()
-    data = json.loads(raw.strip())
-
-    for key in ["description", "reason", "vibe"]:
-        if key in data:
-            data[key] = clean_text(data[key])
-
-    return data, None
-
+    return re.sub(r"<[^>]+>", "", text).strip()
 
 load_dotenv()
  
@@ -196,6 +187,11 @@ Rules:
                 raw = raw[4:]
 
         data = json.loads(raw.strip())
+
+        for key in ["description", "reason", "vibe"]:
+            if key in data:
+                data[key] = clean_text(data[key])
+
         return data, None
 
     except Exception:
@@ -323,7 +319,7 @@ if st.session_state.result is None and st.session_state.error is None:
                     st.rerun()
  
 elif st.session_state.error:
-    st.error(st.session_state.error)
+    st.error("Something went wrong, but we still found songs 🎧")
     if st.button("Try Again"):
         reset()
         st.rerun()
