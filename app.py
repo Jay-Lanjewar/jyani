@@ -172,6 +172,7 @@ Rules:
 - Songs must actually exist on YouTube.
 - Genres should reflect the actual recommendation mix — e.g. Bollywood, Hindi Indie, Marathi Bhavgeet, Soft Rock, English Pop, Sufi, Lo-fi Hindi, etc.
 - Be specific, not generic.
+- DO NOT include any HTML tags like <p>, <div>, <br>, etc. Return plain text only.
 """
 
         response = client.models.generate_content(
@@ -330,9 +331,9 @@ else:
  
     emoji = profile.get('emoji', '🎵')
     mood_name = profile.get('mood_name', 'Your Mood')
-    desc = clean_text(profile.get('description', ''))
-    reason = clean_text(profile.get('reason', ''))
-    vibe = clean_text(profile.get('vibe', ''))
+    desc = clean_text(str(profile.get('description', '')))
+    reason = clean_text(str(profile.get('reason', '')))
+    vibe = clean_text(str(profile.get('vibe', '')))
  
     st.markdown(f"""
     <div class="mood-card">
