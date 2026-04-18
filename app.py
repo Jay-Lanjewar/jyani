@@ -12,10 +12,14 @@ def clean_text(text):
         return ""
     text = re.sub(r"<[^>]+>", "", text)  # remove all HTML tags
     return text.strip()
+    data = json.loads(raw.strip())
 
-for key in ["description", "reason", "vibe"]:
+    for key in ["description", "reason", "vibe"]:
     if key in data:
         data[key] = clean_text(data[key])
+
+    return data, None
+
 
 load_dotenv()
  
